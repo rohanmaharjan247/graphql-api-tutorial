@@ -1,9 +1,9 @@
 import { CreateUserInput } from './../schema/user.schema';
 import { LoginInput, UserModel } from '../schema/user.schema';
-import Context from '../types/Context';
 import { ApolloError } from 'apollo-server-core';
 import bcrypt from 'bcrypt';
 import { signJwt } from '../utils/jwt';
+import Context from '../types/context';
 
 class UserService {
   async createUser(input: CreateUserInput) {
@@ -34,7 +34,7 @@ class UserService {
     // set a cookie for the jwt
     context.res.cookie('accessToken', token, {
       maxAge: 3.154e10,
-      httpOnly: true,
+      httpOnly: false,
       domain: 'localhost', // set domain in prod
       path: '/',
       sameSite: 'strict',

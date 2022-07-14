@@ -16,30 +16,28 @@ import http from 'http';
 import { connectToMongoDb } from './utils/mongo';
 import { verifyJwt } from './utils/jwt';
 import { User } from './schema/user.schema';
-import Context from './types/Context';
+import Context from './types/context';
+import authChecker from './utils/authChecker';
+import cors from 'cors';
 
 async function bootstrap() {
   const schema = await buildSchema({
     resolvers,
-    //authChecker,
+    authChecker,
   });
 
   const app = express();
   const httpServer = http.createServer(app);
   app.use(cookieParser());
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-    })
-  );
 
   const server = new ApolloServer({
     schema,
+
     csrfPrevention: true,
     cache: 'bounded',
     context: (ctx: Context) => {
       const context = ctx;
+      console.log('cookies', JSON.stringify(ctx.req));
       if (ctx.req.cookies.accessToken) {
         const user = verifyJwt<User>(ctx.req.cookies.accessToken);
 
@@ -57,7 +55,10 @@ async function bootstrap() {
 
   await server.start();
 
-  server.applyMiddleware({ app });
+  server.applyMiddleware({
+    app,
+    cors: false,
+  });
 
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: 4000 }, resolve)
